@@ -14,7 +14,15 @@ func ParseParams(params string) (clientIp pgx.NullString, ipV4 bool, clientMac p
 	ipV4 = false
 	clientIp = pgx.NullString{Valid: false}
 	clientMac = pgx.NullString{Valid: false}
-	b, _ := base64.StdEncoding.DecodeString(params)
+	b, err := base64.StdEncoding.DecodeString(params)
+	if err != nil {
+		// fmt.Println(err.Error())
+		umac, err := net.ParseMAC(params)
+		if err == nil {
+			clientMac = pgx.NullString{String: umac.String(), Valid: true}
+		}
+		return clientIp, ipV4, clientMac
+	}
 	s := strings.SplitN(string(b), "|", 2)
 	if len(s) != 2 {
 		return clientIp, ipV4, clientMac

@@ -1,6 +1,7 @@
 package adscore
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/jackc/pgx"
@@ -26,6 +27,7 @@ var (
 	paramsNone        = "none"
 	paramsNoMac       = "MTkyLjE2OC44OC4zM3wwMTIzLjQ1NjcuODlBQi5DREVGMTE="
 	paramsNoIp        = "MTkyLjE2OC44OC4zMzQ0fDAxMjMuNDU2Ny44OUFCLkNERUY="
+	paramUmac         = "00:23:6C:88:A1:D1"
 	clientMac         = pgx.NullString{String: "01:23:45:67:89:ab:cd:ef", Valid: true}
 	clientIp          = pgx.NullString{String: "192.168.88.33", Valid: true}
 	clientIpV6        = pgx.NullString{String: "::1", Valid: true}
@@ -89,6 +91,14 @@ func TestParseParams(t *testing.T) {
 			So(ip.Valid, ShouldBeFalse)
 			So(mac.Valid, ShouldBeTrue)
 			So(mac.String, ShouldEqual, clientMac.String)
+			So(ip.String, ShouldEqual, "")
+		})
+		Convey("Valid Mac no base64 encdode", func() {
+			ip, ipv4, mac := ParseParams(paramUmac)
+			So(ipv4, ShouldBeFalse)
+			So(ip.Valid, ShouldBeFalse)
+			So(mac.Valid, ShouldBeTrue)
+			So(mac.String, ShouldEqual, strings.ToLower(paramUmac))
 			So(ip.String, ShouldEqual, "")
 		})
 		Convey("Is not valid params", func() {
